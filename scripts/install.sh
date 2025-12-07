@@ -8,6 +8,7 @@ set -euo pipefail
 # Default, ordered list of descriptive step names
 ALL_STEPS=(
   dnf_up
+  rpm_fusion
   dnf_install
   flathub
   flatpak_install
@@ -29,11 +30,20 @@ dnf_up() {
   sudo dnf up -y --refresh
 }
 
+rpm_fusion() {
+  echo "[rpm_fusion] Enable RPM Fusion Free and Nonfree"
+
+  local fedora_version="$(rpm -E %fedora)"
+
+  sudo dnf in -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$fedora_version.noarch.rpm
+  sudo dnf in -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$fedora_version.noarch.rpm
+}
+
 dnf_install() {
   echo "[dnf_install] Install DNF packages"
-  PKG_FILE="$PKGS_DIR/dnf.txt"
-
-  local packages=($(read_package_list "$PKG_FILE"))
+  
+  local pkg_file="$PKGS_DIR/dnf.txt"
+  local packages=($(read_package_list "$pkg_file"))
 
   echo "[dnf_install] Installing ${#packages[@]} packages with dnf..."
   sudo dnf in -y "${packages[@]}"
@@ -47,9 +57,9 @@ dnf_install() {
 
 flatpak_install() {
   echo "[flatpak_install] Install Flatpak packages"
-  PKG_FILE="$PKGS_DIR/flatpak.txt"
 
-  local packages=($(read_package_list "$PKG_FILE"))
+  local pkg_file="$PKGS_DIR/flatpak.txt"
+  local packages=($(read_package_list "$pkg_file"))
 
   if [[ ${#packages[@]} -eq 0 ]]; then
     echo "[flatpak_install] No packages to install"
@@ -64,9 +74,9 @@ flatpak_install() {
 
 snap_install() {
   echo "[snap_install] Install Snap packages"
-  PKG_FILE="$PKGS_DIR/snap.txt"
 
-  local packages=($(read_package_list "$PKG_FILE"))
+  local pkg_file="$PKGS_DIR/snap.txt"
+  local packages=($(read_package_list "$pkg_file"))
 
   if [[ ${#packages[@]} -eq 0 ]]; then
     echo "[snap_install] No packages to install"
@@ -131,8 +141,8 @@ node() {
   fi
 
   # Load NVM
-  NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  local nvm_dir="$HOME/.nvm"
+  [ -s "$nvm_dir/nvm.sh" ] && \. "$nvm_dir/nvm.sh"
 
   echo "[node] Installing latest LTS version of Node via NVM"
   nvm install --lts
