@@ -16,6 +16,7 @@ ALL_STEPS=(
   chrome
   node
   oh_my_zsh
+  oh_my_zsh_plugins
   starship
   docker
   snapper
@@ -121,6 +122,16 @@ oh_my_zsh() {
   else
     sh -c "$(curl -fsSL $OH_MY_ZSH_INSTALL_URL)"
   fi
+}
+
+oh_my_zsh_plugins() {
+  local plugins="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
+
+  echo "[oh_my_zsh_plugins] Install zsh-nvm"
+  git clone https://github.com/lukechilds/zsh-nvm "$plugins/zsh-nvm"
+
+  echo "[oh_my_zsh_plugins] Install zsh-autosuggestions"
+  git clone https://github.com/zsh-users/zsh-autosuggestions "$plugins/zsh-autosuggestions"
 }
 
 starship() {
