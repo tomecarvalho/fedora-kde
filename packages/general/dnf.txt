@@ -5,6 +5,8 @@ fastfetch
 fd-find
 fzf
 git
+ksshaskpass
+kwallet-pam
 libreoffice-calc
 libreoffice-impress
 libreoffice-writer
