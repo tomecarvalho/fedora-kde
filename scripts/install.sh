@@ -10,7 +10,6 @@ ALL_STEPS=(
   dnf_up
   rpm_fusion
   dnf_install
-  flathub
   flatpak_install
   snap_install
   vscode
