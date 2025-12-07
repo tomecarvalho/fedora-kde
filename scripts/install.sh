@@ -16,6 +16,8 @@ ALL_STEPS=(
   chrome
   node
   oh_my_zsh
+  starship
+  docker
   snapper
 )
 
@@ -119,8 +121,10 @@ oh_my_zsh() {
   else
     sh -c "$(curl -fsSL $OH_MY_ZSH_INSTALL_URL)"
   fi
+}
 
-  echo "[oh_my_zsh] Install starship prompt"
+starship() {
+  echo "[starship] Install starship prompt"
 
   if ! command -v starship &> /dev/null; then
     curl -sS https://starship.rs/install.sh | sh -s -- -y
