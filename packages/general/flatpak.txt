@@ -1,0 +1,3 @@
+com.stremio.Stremio
+org.signal.Signal
+org.telegram.desktop
