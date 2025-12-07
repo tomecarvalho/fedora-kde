@@ -10,6 +10,7 @@ ALL_STEPS=(
   dnf_up
   rpm_fusion
   dnf_install
+  dnf_uninstall
   flatpak_install
   snap_install
   vscode
@@ -23,7 +24,10 @@ ALL_STEPS=(
 )
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PKGS_DIR="$SCRIPT_DIR/../packages/general"
+
+PKGS_DIR="$SCRIPT_DIR/../packages"
+GENERAL_PKGS_DIR="$PKGS_DIR/general"
+REMOVE_PKGS_DIR="$PKGS_DIR/remove"
 
 source "$SCRIPT_DIR/utils.sh"
 
@@ -44,23 +48,32 @@ rpm_fusion() {
 dnf_install() {
   echo "[dnf_install] Install DNF packages"
   
-  local pkg_file="$PKGS_DIR/dnf.txt"
+  local pkg_file="$GENERAL_PKGS_DIR/dnf.txt"
   local packages=($(read_package_list "$pkg_file"))
 
   echo "[dnf_install] Installing ${#packages[@]} packages with dnf..."
   sudo dnf in -y "${packages[@]}"
+}
 
-  echo "[dnf_install] Removing unnecessary packages"
-  sudo dnf rm -y xfce4-terminal volumeicon
+dnf_uninstall() {
+  echo "[dnf_uninstall] Uninstall unnecessary DNF packages"
 
-  echo "[dnf_install] Replacing ffmpeg-free with ffmpeg"
-  sudo dnf in -y ffmpeg --allowerasing
+  local pkg_file="$REMOVE_PKGS_DIR/dnf.txt"
+  local packages=($(read_package_list "$pkg_file"))
+
+  if [[ ${#packages[@]} -eq 0 ]]; then
+    echo "[dnf_uninstall] No packages to uninstall"
+    return
+  fi
+
+  echo "[dnf_uninstall] Uninstalling ${#packages[@]} packages with dnf..."
+  sudo dnf rm -y "${packages[@]}"
 }
 
 flatpak_install() {
   echo "[flatpak_install] Install Flatpak packages"
 
-  local pkg_file="$PKGS_DIR/flatpak.txt"
+  local pkg_file="$GENERAL_PKGS_DIR/flatpak.txt"
   local packages=($(read_package_list "$pkg_file"))
 
   if [[ ${#packages[@]} -eq 0 ]]; then
@@ -77,7 +90,7 @@ flatpak_install() {
 snap_install() {
   echo "[snap_install] Install Snap packages"
 
-  local pkg_file="$PKGS_DIR/snap.txt"
+  local pkg_file="$GENERAL_PKGS_DIR/snap.txt"
   local packages=($(read_package_list "$pkg_file"))
 
   if [[ ${#packages[@]} -eq 0 ]]; then
