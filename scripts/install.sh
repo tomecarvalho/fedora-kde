@@ -16,6 +16,7 @@ ALL_STEPS=(
   vscode
   chrome
   node
+  cursor
   oh_my_zsh
   oh_my_zsh_plugins
   starship
@@ -183,6 +184,21 @@ node() {
 
   echo "[node] Set up PNPM global packages directory"
   pnpm setup
+}
+
+cursor() {
+  echo "[cursor] Add Cursor repository"
+  sudo tee /etc/yum.repos.d/cursor.repo << 'EOF'
+[cursor]
+name=Cursor
+baseurl=https://downloads.cursor.com/yumrepo
+enabled=1
+gpgcheck=1
+gpgkey=https://downloads.cursor.com/keys/anysphere.asc
+EOF
+  
+  echo "[cursor] Install Cursor"
+  sudo dnf in -y cursor
 }
 
 docker() {
