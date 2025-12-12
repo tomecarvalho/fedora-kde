@@ -3,6 +3,8 @@
 OH_MY_ZSH_INSTALL_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
 NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh"
 
+NOTO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Noto.zip"
+
 set -euo pipefail
 
 # Default, ordered list of descriptive step names
@@ -22,6 +24,7 @@ ALL_STEPS=(
   starship
   docker
   snapper
+  noto_nerd_font
 )
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -226,6 +229,32 @@ snapper() {
   echo "[snapper] Enabling snapper-timeline.timer and snapper-cleanup.timer"
   sudo systemctl enable --now snapper-timeline.timer
   sudo systemctl enable --now snapper-cleanup.timer
+}
+
+noto_nerd_font() {
+  echo "[noto_nerd_font] Install Noto Nerd Font"
+
+  local font_name="NotoNerdFont"
+  local font_dir="/usr/local/share/fonts/$font_name"
+
+  if fc-list | grep -q "$font_name"; then
+    echo "$font_name is already installed"
+    return
+  fi
+
+  # Create the font directory, if needed
+  sudo mkdir -p "$font_dir"
+
+  # Download into a temporary ZIP file, unzip, and clean up the temp file
+  local tmp_zip="$(mktemp --suffix=.zip)"
+  curl -L -o "$tmp_zip" "$NOTO_NERD_FONT_URL"
+  sudo unzip -o "$tmp_zip" -d "$font_dir"
+  rm "$tmp_zip"
+
+  # Update font cache
+  sudo fc-cache -fv
+
+  echo "[noto_nerd_font] Installed $font_name to $font_dir"
 }
 
 usage() {
