@@ -15,6 +15,7 @@ ALL_STEPS=(
   dnf_uninstall
   flatpak_install
   snap_install
+  pipx_install
   vscode
   chrome
   node
@@ -110,6 +111,24 @@ snap_install() {
   echo "[snap_install] Installing ${#packages[@]} packages with snap..."
   for package in "${packages[@]}"; do
     sudo snap install "$package"
+  done
+}
+
+pipx_install() {
+  echo "[pipx_install] Ensure pipx is in PATH"
+  pipx ensurepath
+
+  local pkg_file="$GENERAL_PKGS_DIR/pipx.txt"
+  local packages=($(read_package_list "$pkg_file"))
+
+  if [[ ${#packages[@]} -eq 0 ]]; then
+    echo "[pipx_install] No packages to install"
+    return
+  fi
+
+  echo "[pipx_install] Installing ${#packages[@]} package(s) with pipx..."
+  for package in "${packages[@]}"; do
+    pipx install "$package"
   done
 }
 
