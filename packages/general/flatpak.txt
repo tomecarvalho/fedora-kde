@@ -1,3 +1,4 @@
+com.bitwarden.desktop
 com.stremio.Stremio
 org.signal.Signal
 org.telegram.desktop
