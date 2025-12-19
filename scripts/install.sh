@@ -25,6 +25,7 @@ ALL_STEPS=(
   docker
   snapper
   noto_nerd_font
+  noto_nerd_font_as_monospace
 )
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -255,6 +256,29 @@ noto_nerd_font() {
   sudo fc-cache -fv
 
   echo "[noto_nerd_font] Installed $font_name to $font_dir"
+}
+
+noto_nerd_font_as_monospace() {
+  echo "[noto_nerd_font_as_monospace] Set Noto Nerd Font as the monospace font system-wide"
+
+  mkdir -p ~/.config/fontconfig/conf.d
+
+  cat > ~/.config/fontconfig/conf.d/99-monospace-noto.conf <<'EOF'
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <alias>
+    <family>monospace</family>
+    <prefer>
+      <family>NotoSansM Nerd Font Mono</family>
+    </prefer>
+  </alias>
+</fontconfig>
+EOF
+
+  sudo fc-cache -fv
+
+  echo "[noto_nerd_font_as_monospace] Set NotoSansM Nerd Font Mono as the monospace font"
 }
 
 usage() {
