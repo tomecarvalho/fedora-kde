@@ -1,2 +1,4 @@
 globalprotect-openconnect
+libxcrypt-compat.x86_64
 openvpn
+postgresql
