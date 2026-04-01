@@ -21,6 +21,7 @@ stow
 thunderbird
 tmux
 vlc
+webapp-manager
 zoxide
 zsh
 zsh-syntax-highlighting

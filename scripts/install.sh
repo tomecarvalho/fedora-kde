@@ -11,6 +11,7 @@ set -euo pipefail
 ALL_STEPS=(
   dnf_up
   rpm_fusion
+  copr
   dnf_install
   dnf_uninstall
   flatpak_install
@@ -50,6 +51,20 @@ rpm_fusion() {
   sudo dnf in -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$fedora_version.noarch.rpm
   sudo dnf in -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$fedora_version.noarch.rpm
 }
+
+copr() {
+  echo "[copr] Enable COPR repositories"
+  
+  local copr_file="$GENERAL_PKGS_DIR/copr.txt"
+  local repos=($(read_package_list "$copr_file"))
+
+  echo "[copr] Enabling ${#repos[@]} COPR repositories..."
+
+  for repo in "${repos[@]}"; do
+    sudo dnf copr enable -y "$repo"
+  done
+}
+
 
 dnf_install() {
   echo "[dnf_install] Install DNF packages"
