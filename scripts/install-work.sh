@@ -17,8 +17,16 @@ PKGS_DIR="$SCRIPT_DIR/../packages/work"
 source "$SCRIPT_DIR/utils.sh"
 
 copr() {
-  echo "[copr] Enable COPR repository for globalprotect-openconnect"
-  sudo dnf copr enable -y yuezk/globalprotect-openconnect
+  echo "[copr] Enable COPR repositories"
+  
+  local copr_file="$PKGS_DIR/copr.txt"
+  local repos=($(read_package_list "$copr_file"))
+
+  echo "[copr] Enabling ${#repos[@]} COPR repositories..."
+
+  for repo in "${repos[@]}"; do
+    sudo dnf copr enable -y "$repo"
+  done
 }
 
 dnf_install() {
