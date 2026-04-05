@@ -334,6 +334,9 @@ aliases() {
     echo "[aliases] Alias file already exists and is not a symlink. Please remove or rename $target and re-run this step."
     return
   fi
+
+  ln -s "$source" "$target"
+  echo "[aliases] Symlinked $source to $target"
 }
 
 usage() {
