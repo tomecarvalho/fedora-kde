@@ -28,10 +28,11 @@ ALL_STEPS=(
   snapper
   noto_nerd_font
   noto_nerd_font_as_monospace
+  aliases
 )
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
+ALIASES_DIR="$SCRIPT_DIR/../aliases"
 PKGS_DIR="$SCRIPT_DIR/../packages"
 GENERAL_PKGS_DIR="$PKGS_DIR/general"
 REMOVE_PKGS_DIR="$PKGS_DIR/remove"
@@ -313,6 +314,26 @@ EOF
   sudo fc-cache -fv
 
   echo "[noto_nerd_font_as_monospace] Set NotoSansM Nerd Font Mono as the monospace font"
+}
+
+aliases() {
+  echo "[aliases] Symlink aliases/.aliases to ~/.aliases"
+
+  local target="$HOME/.aliases"
+  local source="$ALIASES_DIR/.aliases"
+
+  if [[ -L "$target" ]]; then
+    if [[ "$(readlink "$target")" == "$source" ]]; then
+      echo "[aliases] Alias file is already correctly symlinked"
+      return
+    else
+      echo "[aliases] Alias file is a symlink to the wrong location. Removing."
+      rm "$target"
+    fi
+  elif [[ -e "$target" ]]; then
+    echo "[aliases] Alias file already exists and is not a symlink. Please remove or rename $target and re-run this step."
+    return
+  fi
 }
 
 usage() {
