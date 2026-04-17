@@ -3,7 +3,7 @@
 OH_MY_ZSH_INSTALL_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
 NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh"
 
-JETBRAINS_MONO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/JetBrainsMono.zip"
+IBM_PLEX_MONO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/IBMPlexMono.zip"
 
 set -euo pipefail
 
@@ -25,8 +25,9 @@ ALL_STEPS=(
   starship
   docker
   snapper
-  jetbrains_mono_nerd_font
-  jetbrains_mono_nerd_font_as_monospace
+  ibm_plex_mono_nerd_font
+  ibm_plex_mono_nerd_font_as_monospace
+  ibm_plex_sans_as_sans_serif
   aliases
 )
 
@@ -294,13 +295,15 @@ snapper() {
   sudo systemctl enable --now snapper-cleanup.timer
 }
 
-jetbrains_mono_nerd_font() {
-  echo "[jetbrains_mono_nerd_font] Install JetBrains Mono Nerd Font"
+ibm_plex_mono_nerd_font() {
+  echo "[ibm_plex_mono_nerd_font] Install IBM Plex Mono Nerd Font"
 
-  local font_name="JetBrainsMonoNerdFont"
+  local font_name="IBMPlexMonoNerdFont"
   local font_dir="/usr/local/share/fonts/$font_name"
 
-  if fc-list | grep -q "$font_name"; then
+  local matched_mono_family
+  matched_mono_family="$(fc-match -f '%{family}\n' 'IBM Plex Mono Nerd Font' 2>/dev/null || true)"
+  if [[ "${matched_mono_family,,}" == *"ibm plex mono nerd font"* ]]; then
     echo "$font_name is already installed"
     return
   fi
@@ -311,29 +314,29 @@ jetbrains_mono_nerd_font() {
   # Download into a temporary ZIP file, unzip, and clean up the temp file
   local tmp_zip
   tmp_zip="$(mktemp --suffix=.zip)"
-  curl -L -o "$tmp_zip" "$JETBRAINS_MONO_NERD_FONT_URL"
+  curl -L -o "$tmp_zip" "$IBM_PLEX_MONO_NERD_FONT_URL"
   sudo unzip -o "$tmp_zip" -d "$font_dir"
   rm "$tmp_zip"
 
   # Update font cache
   sudo fc-cache -fv
 
-  echo "[jetbrains_mono_nerd_font] Installed $font_name to $font_dir"
+  echo "[ibm_plex_mono_nerd_font] Installed $font_name to $font_dir"
 }
 
-jetbrains_mono_nerd_font_as_monospace() {
-  echo "[jetbrains_mono_nerd_font_as_monospace] Set JetBrains Mono Nerd Font as the monospace font system-wide"
+ibm_plex_mono_nerd_font_as_monospace() {
+  echo "[ibm_plex_mono_nerd_font_as_monospace] Set IBM Plex Mono Nerd Font as the monospace font system-wide"
 
   mkdir -p ~/.config/fontconfig/conf.d
 
-  cat > ~/.config/fontconfig/conf.d/99-monospace-jetbrains-mono.conf <<'EOF'
+  cat > ~/.config/fontconfig/conf.d/99-monospace-ibm-plex-mono.conf <<'EOF'
 <?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
 <fontconfig>
   <alias>
     <family>monospace</family>
     <prefer>
-      <family>JetBrainsMono Nerd Font Mono</family>
+      <family>Blex Mono Nerd Font Mono</family>
     </prefer>
   </alias>
 </fontconfig>
@@ -341,7 +344,38 @@ EOF
 
   sudo fc-cache -fv
 
-  echo "[jetbrains_mono_nerd_font_as_monospace] Set JetBrains Mono Nerd Font Mono as the monospace font"
+  echo "[ibm_plex_mono_nerd_font_as_monospace] Set IBM Plex Mono Nerd Font Mono as the monospace font"
+}
+
+ibm_plex_sans_as_sans_serif() {
+  echo "[ibm_plex_sans_as_sans_serif] Set IBM Plex Sans as the sans-serif font system-wide"
+
+  local matched_sans_family
+  matched_sans_family="$(fc-match -f '%{family}\n' 'IBM Plex Sans' 2>/dev/null || true)"
+  if [[ "${matched_sans_family,,}" != *"ibm plex sans"* ]]; then
+    echo "[ibm_plex_sans_as_sans_serif] IBM Plex Sans is not installed. Please install it manually first and re-run this step."
+    echo "You can download it from https://fonts.google.com/specimen/IBM+Plex+Sans"
+    return
+  fi
+
+  mkdir -p ~/.config/fontconfig/conf.d
+
+  cat > ~/.config/fontconfig/conf.d/99-sans-serif-ibm-plex-sans.conf <<'EOF'
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <alias>
+    <family>sans-serif</family>
+    <prefer>
+      <family>IBM Plex Sans</family>
+    </prefer>
+  </alias>
+</fontconfig>
+EOF
+
+  sudo fc-cache -fv
+
+  echo "[ibm_plex_sans_as_sans_serif] Set IBM Plex Sans as the sans-serif font"
 }
 
 aliases() {
