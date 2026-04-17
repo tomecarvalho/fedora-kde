@@ -3,7 +3,7 @@
 OH_MY_ZSH_INSTALL_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
 NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh"
 
-NOTO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Noto.zip"
+JETBRAINS_MONO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/JetBrainsMono.zip"
 
 set -euo pipefail
 
@@ -25,8 +25,8 @@ ALL_STEPS=(
   starship
   docker
   snapper
-  noto_nerd_font
-  noto_nerd_font_as_monospace
+  jetbrains_mono_nerd_font
+  jetbrains_mono_nerd_font_as_monospace
   aliases
 )
 
@@ -294,10 +294,10 @@ snapper() {
   sudo systemctl enable --now snapper-cleanup.timer
 }
 
-noto_nerd_font() {
-  echo "[noto_nerd_font] Install Noto Nerd Font"
+jetbrains_mono_nerd_font() {
+  echo "[jetbrains_mono_nerd_font] Install JetBrains Mono Nerd Font"
 
-  local font_name="NotoNerdFont"
+  local font_name="JetBrainsMonoNerdFont"
   local font_dir="/usr/local/share/fonts/$font_name"
 
   if fc-list | grep -q "$font_name"; then
@@ -309,30 +309,31 @@ noto_nerd_font() {
   sudo mkdir -p "$font_dir"
 
   # Download into a temporary ZIP file, unzip, and clean up the temp file
-  local tmp_zip="$(mktemp --suffix=.zip)"
-  curl -L -o "$tmp_zip" "$NOTO_NERD_FONT_URL"
+  local tmp_zip
+  tmp_zip="$(mktemp --suffix=.zip)"
+  curl -L -o "$tmp_zip" "$JETBRAINS_MONO_NERD_FONT_URL"
   sudo unzip -o "$tmp_zip" -d "$font_dir"
   rm "$tmp_zip"
 
   # Update font cache
   sudo fc-cache -fv
 
-  echo "[noto_nerd_font] Installed $font_name to $font_dir"
+  echo "[jetbrains_mono_nerd_font] Installed $font_name to $font_dir"
 }
 
-noto_nerd_font_as_monospace() {
-  echo "[noto_nerd_font_as_monospace] Set Noto Nerd Font as the monospace font system-wide"
+jetbrains_mono_nerd_font_as_monospace() {
+  echo "[jetbrains_mono_nerd_font_as_monospace] Set JetBrains Mono Nerd Font as the monospace font system-wide"
 
   mkdir -p ~/.config/fontconfig/conf.d
 
-  cat > ~/.config/fontconfig/conf.d/99-monospace-noto.conf <<'EOF'
+  cat > ~/.config/fontconfig/conf.d/99-monospace-jetbrains-mono.conf <<'EOF'
 <?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
 <fontconfig>
   <alias>
     <family>monospace</family>
     <prefer>
-      <family>NotoSansM Nerd Font Mono</family>
+      <family>JetBrainsMono Nerd Font Mono</family>
     </prefer>
   </alias>
 </fontconfig>
@@ -340,7 +341,7 @@ EOF
 
   sudo fc-cache -fv
 
-  echo "[noto_nerd_font_as_monospace] Set NotoSansM Nerd Font Mono as the monospace font"
+  echo "[jetbrains_mono_nerd_font_as_monospace] Set JetBrains Mono Nerd Font Mono as the monospace font"
 }
 
 aliases() {
