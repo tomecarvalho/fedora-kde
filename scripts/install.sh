@@ -93,6 +93,9 @@ dnf_uninstall() {
 }
 
 flatpak_install() {
+  echo "[flatpak_install] Enable Flathub"
+  flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo  
+
   echo "[flatpak_install] Install Flatpak packages"
 
   local pkg_file="$GENERAL_PKGS_DIR/flatpak.txt"
