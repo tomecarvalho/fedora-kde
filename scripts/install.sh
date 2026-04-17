@@ -18,7 +18,6 @@ ALL_STEPS=(
   snap_install
   pipx_install
   vscode
-  chrome
   node
   cursor
   oh_my_zsh
@@ -162,12 +161,6 @@ vscode() {
   echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\nautorefresh=1\ntype=rpm-md\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/vscode.repo > /dev/null
   echo "[vscode] Install VS Code"
   sudo dnf in -y code
-}
-
-chrome() {
-  echo "[chrome] Enable Chrome repository and install it"
-  sudo dnf config-manager setopt google-chrome.enabled=1
-  sudo dnf in -y google-chrome-stable
 }
 
 oh_my_zsh() {

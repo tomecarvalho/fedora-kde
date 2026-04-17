@@ -7,6 +7,7 @@ set -euo pipefail
 # Default, ordered list of descriptive step names
 ALL_STEPS=(
   copr
+  chrome_repo
   dnf_install
   snap_install
 )
@@ -27,6 +28,11 @@ copr() {
   for repo in "${repos[@]}"; do
     sudo dnf copr enable -y "$repo"
   done
+}
+
+chrome_repo() {
+  echo "[chrome] Enable Chrome repository"
+  sudo dnf config-manager setopt google-chrome.enabled=1
 }
 
 dnf_install() {
@@ -55,6 +61,8 @@ snap_install() {
     sudo snap install "$package"
   done
 }
+
+
 
 usage() {
   cat <<EOF
