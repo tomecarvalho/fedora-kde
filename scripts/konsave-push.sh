@@ -5,8 +5,8 @@ set -euo pipefail
 ECHO_PREFIX="[konsave-push]"
 
 die() {
-    echo "${ECHO_PREFIX} $1" >&2
-    exit 1
+  echo "${ECHO_PREFIX} $1" >&2
+  exit 1
 }
 
 # Navigate to fedora-kde directory.
@@ -18,7 +18,7 @@ command -v konsave >/dev/null 2>&1 || die "konsave is not installed."
 
 # Abort if working tree is dirty.
 if [[ -n "$(git status --porcelain)" ]]; then
-    die "There are uncommitted changes in the repository. Commit or stash them first."
+  die "There are uncommitted changes in the repository. Commit or stash them first."
 fi
 
 # Check whether local branch is in sync with upstream.
@@ -26,7 +26,7 @@ git fetch --quiet
 UPSTREAM_REF="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)"
 
 if [[ -z "$UPSTREAM_REF" ]]; then
-    die "No upstream is configured for the current branch."
+  die "No upstream is configured for the current branch."
 fi
 
 LOCAL_COMMIT="$(git rev-parse @)"
@@ -34,13 +34,13 @@ UPSTREAM_COMMIT="$(git rev-parse '@{u}')"
 BASE_COMMIT="$(git merge-base @ '@{u}')"
 
 if [[ "$LOCAL_COMMIT" == "$UPSTREAM_COMMIT" ]]; then
-    :
+  :
 elif [[ "$LOCAL_COMMIT" == "$BASE_COMMIT" ]]; then
-    die "Local branch is behind upstream. Run 'git pull --ff-only' first."
+  die "Local branch is behind upstream. Run 'git pull --ff-only' first."
 elif [[ "$UPSTREAM_COMMIT" == "$BASE_COMMIT" ]]; then
-    die "Local branch is ahead of upstream. Push or reconcile before running this script."
+  die "Local branch is ahead of upstream. Push or reconcile before running this script."
 else
-    die "Local and upstream branches have diverged. Reconcile branches before running this script."
+  die "Local and upstream branches have diverged. Reconcile branches before running this script."
 fi
 
 # konsave: 
@@ -61,23 +61,23 @@ cd "$REPO_ROOT" || die "Failed to return to repository root."
 git add konsave/config.knsv
 
 if git diff --cached --quiet; then
-    echo "${ECHO_PREFIX} No changes in konsave/config.knsv; nothing to commit."
-    exit 0
+  echo "${ECHO_PREFIX} No changes in konsave/config.knsv; nothing to commit."
+  exit 0
 fi
 
 read -r -p "${ECHO_PREFIX} Commit and push updated config.knsv? [y/n] (default: y): " CONFIRM
 CONFIRM="${CONFIRM:-y}"
 
 case "$CONFIRM" in
-    y|Y)
-        ;;
-    n|N)
-        echo "${ECHO_PREFIX} Operation cancelled by user."
-        exit 0
-        ;;
-    *)
-        die "Invalid response '$CONFIRM'. Expected y or n."
-        ;;
+  y|Y)
+      ;;
+  n|N)
+      echo "${ECHO_PREFIX} Operation cancelled by user."
+      exit 0
+      ;;
+  *)
+      die "Invalid response '$CONFIRM'. Expected y or n."
+      ;;
 esac
 
 git commit -m "Update config.knsv"
