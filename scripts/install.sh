@@ -58,16 +58,27 @@ copr() {
   echo "[copr] Enable COPR repositories"
   
   local copr_file="$GENERAL_PKGS_DIR/copr.txt"
-  
   local repos=($(read_package_list "$copr_file"))
 
-  echo "[copr] Enabling ${#repos[@]} COPR repositories..."
+  echo "[copr] Enabling ${#repos[@]} COPR repository(ies)..."
 
   for repo in "${repos[@]}"; do
     sudo dnf copr enable -y "$repo"
   done
 }
 
+repofiles() {
+  echo "[repofiles] Enable repositories from repofiles"
+
+  local repos_file="$GENERAL_PKGS_DIR/repofiles.txt"
+  local repos=($(read_package_list "$repos_file"))
+
+  echo "[repofiles] Enabling ${#repos[@]} additional repository(ies)..."
+
+  for repo in "${repos[@]}"; do
+    sudo dnf config-manager addrepo --from-repofile="$repo"
+  done
+}
 
 dnf_install() {
   echo "[dnf_install] Install DNF packages"
