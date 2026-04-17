@@ -46,7 +46,9 @@ dnf_up() {
 rpm_fusion() {
   echo "[rpm_fusion] Enable RPM Fusion Free and Nonfree"
 
-  local fedora_version="$(rpm -E %fedora)"
+
+  local fedora_version
+  fedora_version="$(rpm -E %fedora)"
 
   sudo dnf in -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$fedora_version.noarch.rpm
   sudo dnf in -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$fedora_version.noarch.rpm
@@ -56,6 +58,7 @@ copr() {
   echo "[copr] Enable COPR repositories"
   
   local copr_file="$GENERAL_PKGS_DIR/copr.txt"
+  
   local repos=($(read_package_list "$copr_file"))
 
   echo "[copr] Enabling ${#repos[@]} COPR repositories..."
@@ -360,7 +363,7 @@ EOF
 # Parse args
 STEPS_ARG=""
 LIST_ONLY=false
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
   case "$1" in
     -s|--steps)
       if [[ -n "${2-}" ]]; then
