@@ -105,6 +105,23 @@ dnf_uninstall() {
   sudo dnf rm -y "${packages[@]}"
 }
 
+codecs() {
+  # https://rpmfusion.org/Howto/Multimedia
+  echo "[codecs] Switch to full ffmpeg"
+  sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing
+
+  echo "[codecs] Install additional multimedia codecs"
+  sudo dnf up -y @multimedia --setopt="install_weak_deps=False" --exclude=PackageKit-gstreamer-plugin
+
+  echo "[codecs] Enable RPM Fusion Free Tainted and install package for DVD"
+  sudo dnf in -y rpmfusion-free-release-tainted
+  sudo dnf in -y libdvdcss
+
+  echo "[codecs] Enable RPM Fusion Non-free Tainted and install various firmwares"
+  sudo dnf in -y rpmfusion-nonfree-release-tainted
+  sudo dnf --repo=rpmfusion-nonfree-tainted in -y "*-firmware"
+}
+
 flatpak_install() {
   echo "[flatpak_install] Enable Flathub"
   flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo  
