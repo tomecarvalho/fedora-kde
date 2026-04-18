@@ -5,6 +5,8 @@ NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh
 
 IBM_PLEX_MONO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/IBMPlexMono.zip"
 
+US_PT_KEYBOARD_LAYOUT_GITHUB_SUFFIX="tomecarvalho/us-pt-keyboard-layout.git"
+
 set -euo pipefail
 
 # Default, ordered list of descriptive step names
@@ -399,6 +401,37 @@ aliases() {
 
   ln -s "$source" "$target"
   echo "[aliases] Symlinked $source to $target"
+}
+
+us_pt_keyboard_layout() {
+  echo "[us_pt_keyboard_layout] Install the us-pt keyboard layout"
+
+  # Check if us-pt-keyboard-layout is cloned in home
+  local layout_dir="$HOME/us-pt-keyboard-layout"
+
+  # If not cloned, attempt cloning via SSH, or, as a fallback, via HTTPS
+  if [[ ! -d "$layout_dir" ]]; then
+    echo "[us_pt_keyboard_layout] Attempting to clone us-pt-keyboard-layout via SSH..."
+
+    if ! git clone "git@github.com:$US_PT_KEYBOARD_LAYOUT_GITHUB_SUFFIX" "$layout_dir"; then
+      echo "[us_pt_keyboard_layout] Failed to clone via SSH. Attempting via HTTPS..."
+
+      if ! git clone "https://github.com/$US_PT_KEYBOARD_LAYOUT_GITHUB_SUFFIX" "$layout_dir"; then
+        echo "[us_pt_keyboard_layout] Failed to clone us-pt-keyboard-layout via HTTPS."
+        return
+      fi
+    fi
+  fi
+
+  local install="$layout_dir/linux/install.sh"
+
+  # Run the install script
+  if [[ -f "$install" ]]; then
+    echo "[us_pt_keyboard_layout] Running install script at $install"
+    sudo bash "$install"
+  else
+    echo "[us_pt_keyboard_layout] Install script not found at $layout_dir/install.sh"
+  fi
 }
 
 usage() {
