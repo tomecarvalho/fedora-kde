@@ -1,11 +1,26 @@
+#!/usr/bin/env sh
+
 CURSOR_PATH="/usr/bin/cursor"
-FEDORA_KDE_PATH="~/fedora-kde"
+
+FEDORA_KDE_PATH="$HOME/fedora-kde"
 SCRIPTS_PATH="$FEDORA_KDE_PATH/scripts"
 
+# Copy to clipboard on Wayland.
 alias cb="wl-copy"
-alias cursor="$CURSOR_PATH --no-sandbox"
+
+# Enables the cursor command to open files or directories through the terminal.
+alias cursor='$CURSOR_PATH --no-sandbox'
+
+# Start/stop the Docker service using systemd.
 alias docker-start="sudo systemctl start docker"
 alias docker-stop="sudo systemctl stop docker"
+
+# Update system packages, flatpaks, and snaps.
 alias update="sudo dnf up -y && flatpak update -y && sudo snap refresh"
-alias konsave-push="$SCRIPTS_PATH/konsave-push.sh"
-alias konsave-pull="$SCRIPTS_PATH/konsave-pull.sh"
+
+# Pull: update versioned Plasma config; push: commit and push changes to tracked Plasma config.
+alias konsave-push='$SCRIPTS_PATH/konsave-push.sh'
+alias konsave-pull='$SCRIPTS_PATH/konsave-pull.sh'
+
+# Apply a theme to Plasma, Konsole, and KWrite.
+alias theme='$SCRIPTS_PATH/theme.sh'

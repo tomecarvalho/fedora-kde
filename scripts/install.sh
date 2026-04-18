@@ -32,8 +32,6 @@ ALL_STEPS=(
   ibm_plex_sans_as_sans_serif
   aliases
   stow
-  apply_kanagawa_wave
-  apply_kanagawa_lotus
 )
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -428,80 +426,6 @@ stow() {
   done
 }
 
-apply_kanagawa_theme() {
-  local theme_name="$1"
-  local package="$theme_name"
-  local color_scheme_name="$theme_name"
-  local konsole_scheme_name="$theme_name"
-  local kwrite_theme_name
-  kwrite_theme_name="$(printf '%s' "$theme_name" | awk -F'-' '{for (i = 1; i <= NF; i++) $i = toupper(substr($i, 1, 1)) substr($i, 2)} 1 {print}')"
-
-  if ! command -v stow &> /dev/null; then
-    echo "[apply_kanagawa_theme] GNU Stow is not installed. Install it first and re-run this step." >&2
-    return
-  fi
-
-  local package_dir="$STOW_DIR/$package"
-  if [[ ! -d "$package_dir" ]]; then
-    echo "[apply_kanagawa_theme] Missing package directory: $package_dir" >&2
-    return
-  fi
-
-  command stow --dir="$STOW_DIR" --target="$HOME" --restow "$package"
-  echo "[apply_kanagawa_theme] Applied package: $package"
-
-  if command -v plasma-apply-colorscheme &> /dev/null; then
-    echo "[apply_kanagawa_theme] Applying colour scheme: $color_scheme_name"
-    plasma-apply-colorscheme "$color_scheme_name"
-  else
-    echo "[apply_kanagawa_theme] plasma-apply-colorscheme not found; apply '$color_scheme_name' manually in System Settings."
-  fi
-
-  if [[ -f "$HOME/.config/konsolerc" ]]; then
-    local default_profile
-    default_profile="$(awk -F'=' '/^DefaultProfile=/{print $2; exit}' "$HOME/.config/konsolerc")"
-
-    if [[ -n "$default_profile" ]]; then
-      local profile_path="$HOME/.local/share/konsole/$default_profile"
-
-      if command -v kwriteconfig6 &> /dev/null; then
-        kwriteconfig6 --file "$profile_path" --group Appearance --key ColorScheme "$konsole_scheme_name"
-        echo "[apply_kanagawa_theme] Applied Konsole colour scheme '$konsole_scheme_name' to $default_profile"
-      elif command -v kwriteconfig5 &> /dev/null; then
-        kwriteconfig5 --file "$profile_path" --group Appearance --key ColorScheme "$konsole_scheme_name"
-        echo "[apply_kanagawa_theme] Applied Konsole colour scheme '$konsole_scheme_name' to $default_profile"
-      else
-        echo "[apply_kanagawa_theme] kwriteconfig not found; set Konsole profile colour scheme to '$konsole_scheme_name' manually."
-      fi
-    else
-      echo "[apply_kanagawa_theme] Could not detect Konsole default profile; set '$konsole_scheme_name' manually in Konsole settings."
-    fi
-  else
-    echo "[apply_kanagawa_theme] Konsole config not found; skipping Konsole colour scheme auto-apply."
-  fi
-
-  if command -v kwriteconfig6 &> /dev/null; then
-    kwriteconfig6 --file "$HOME/.config/kwriterc" --group "KTextEditor Renderer" --key "Auto Color Theme Selection" false
-    kwriteconfig6 --file "$HOME/.config/kwriterc" --group "KTextEditor Renderer" --key "Color Theme" "$kwrite_theme_name"
-    echo "[apply_kanagawa_theme] Applied KWrite colour theme '$kwrite_theme_name'"
-  elif command -v kwriteconfig5 &> /dev/null; then
-    kwriteconfig5 --file "$HOME/.config/kwriterc" --group "KTextEditor Renderer" --key "Auto Color Theme Selection" false
-    kwriteconfig5 --file "$HOME/.config/kwriterc" --group "KTextEditor Renderer" --key "Color Theme" "$kwrite_theme_name"
-    echo "[apply_kanagawa_theme] Applied KWrite colour theme '$kwrite_theme_name'"
-  else
-    echo "[apply_kanagawa_theme] kwriteconfig not found; set KWrite Color Theme to '$kwrite_theme_name' manually."
-  fi
-}
-
-apply_kanagawa_wave() {
-  echo "[apply_kanagawa_wave] Apply Kanagawa Wave to Plasma, Konsole and KWrite"
-  apply_kanagawa_theme "kanagawa-wave"
-}
-
-apply_kanagawa_lotus() {
-  echo "[apply_kanagawa_lotus] Apply Kanagawa Lotus to Plasma, Konsole and KWrite"
-  apply_kanagawa_theme "kanagawa-lotus"
-}
 
 us_pt_keyboard_layout() {
   echo "[us_pt_keyboard_layout] Install the us-pt keyboard layout"
