@@ -415,6 +415,7 @@ stow() {
 
   local package="kanagawa-wave"
   local color_scheme_name="kanagawa-wave"
+  local konsole_scheme_name="kanagawa-wave"
   local package_dir="$STOW_DIR/$package"
 
   if [[ ! -d "$package_dir" ]]; then
@@ -432,6 +433,29 @@ stow() {
     plasma-apply-colorscheme "$color_scheme_name"
   else
     echo "[stow] plasma-apply-colorscheme not found; apply '$color_scheme_name' manually in System Settings."
+  fi
+
+  if [[ -f "$HOME/.config/konsolerc" ]]; then
+    local default_profile
+    default_profile="$(awk -F'=' '/^DefaultProfile=/{print $2; exit}' "$HOME/.config/konsolerc")"
+
+    if [[ -n "$default_profile" ]]; then
+      local profile_path="$HOME/.local/share/konsole/$default_profile"
+
+      if command -v kwriteconfig6 &> /dev/null; then
+        kwriteconfig6 --file "$profile_path" --group Appearance --key ColorScheme "$konsole_scheme_name"
+        echo "[stow] Applied Konsole colour scheme '$konsole_scheme_name' to $default_profile"
+      elif command -v kwriteconfig5 &> /dev/null; then
+        kwriteconfig5 --file "$profile_path" --group Appearance --key ColorScheme "$konsole_scheme_name"
+        echo "[stow] Applied Konsole colour scheme '$konsole_scheme_name' to $default_profile"
+      else
+        echo "[stow] kwriteconfig not found; set Konsole profile colour scheme to '$konsole_scheme_name' manually."
+      fi
+    else
+      echo "[stow] Could not detect Konsole default profile; set '$konsole_scheme_name' manually in Konsole settings."
+    fi
+  else
+    echo "[stow] Konsole config not found; skipping Konsole colour scheme auto-apply."
   fi
 }
 
