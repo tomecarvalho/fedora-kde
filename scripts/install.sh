@@ -416,6 +416,7 @@ stow() {
   local package="kanagawa-wave"
   local color_scheme_name="kanagawa-wave"
   local konsole_scheme_name="kanagawa-wave"
+  local kwrite_theme_name="kanagawa-wave"
   local package_dir="$STOW_DIR/$package"
 
   if [[ ! -d "$package_dir" ]]; then
@@ -456,6 +457,18 @@ stow() {
     fi
   else
     echo "[stow] Konsole config not found; skipping Konsole colour scheme auto-apply."
+  fi
+
+  if command -v kwriteconfig6 &> /dev/null; then
+    kwriteconfig6 --file "$HOME/.config/kwriterc" --group "KTextEditor Renderer" --key "Auto Color Theme Selection" false
+    kwriteconfig6 --file "$HOME/.config/kwriterc" --group "KTextEditor Renderer" --key "Color Theme" "$kwrite_theme_name"
+    echo "[stow] Applied KWrite colour theme '$kwrite_theme_name'"
+  elif command -v kwriteconfig5 &> /dev/null; then
+    kwriteconfig5 --file "$HOME/.config/kwriterc" --group "KTextEditor Renderer" --key "Auto Color Theme Selection" false
+    kwriteconfig5 --file "$HOME/.config/kwriterc" --group "KTextEditor Renderer" --key "Color Theme" "$kwrite_theme_name"
+    echo "[stow] Applied KWrite colour theme '$kwrite_theme_name'"
+  else
+    echo "[stow] kwriteconfig not found; set KWrite Color Theme to '$kwrite_theme_name' manually."
   fi
 }
 
