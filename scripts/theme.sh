@@ -8,11 +8,14 @@ declare -A THEME_VARIANTS=(
   [kanagawa-dark]="kanagawa-wave"
 )
 
+# Theme to wallpaper path mappings (relative to HOME)
+declare -A THEME_WALLPAPERS=(
+  [kanagawa-lotus]=".local/share/wallpapers/kanagawa-lotus.jpg"
+  [kanagawa-wave]=".local/share/wallpapers/kanagawa-wave.jpg"
+)
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STOW_DIR="$SCRIPT_DIR/../stow"
-
-# shellcheck source=./utils.sh
-source "$SCRIPT_DIR/utils.sh"
 
 # Normalize theme name from input arguments
 # Supports both "kanagawa-lotus" and "kanagawa light" formats
@@ -43,8 +46,14 @@ apply_theme() {
   local package="$theme_name"
   local color_scheme_name="$theme_name"
   local konsole_scheme_name="$theme_name"
+  local wallpaper_rel_path="${THEME_WALLPAPERS[$theme_name]:-}"
+  local wallpaper_path=""
   local kwrite_theme_name
   kwrite_theme_name="$(printf '%s' "$theme_name" | awk -F'-' '{for (i = 1; i <= NF; i++) $i = toupper(substr($i, 1, 1)) substr($i, 2)} 1 {print}')"
+
+  if [[ -n "$wallpaper_rel_path" ]]; then
+    wallpaper_path="$HOME/$wallpaper_rel_path"
+  fi
 
   if ! command -v stow &> /dev/null; then
     echo "[theme] GNU Stow is not installed. Install it first and re-run this step." >&2
@@ -65,6 +74,17 @@ apply_theme() {
     plasma-apply-colorscheme "$color_scheme_name"
   else
     echo "[theme] plasma-apply-colorscheme not found; apply '$color_scheme_name' manually in System Settings."
+  fi
+
+  if [[ -z "$wallpaper_path" ]]; then
+    echo "[theme] No wallpaper mapping found for theme '$theme_name'; skipping wallpaper auto-apply."
+  elif [[ ! -f "$wallpaper_path" ]]; then
+    echo "[theme] Wallpaper file not found: $wallpaper_path"
+  elif command -v plasma-apply-wallpaperimage &> /dev/null; then
+    plasma-apply-wallpaperimage "$wallpaper_path"
+    echo "[theme] Applied wallpaper: $wallpaper_path"
+  else
+    echo "[theme] plasma-apply-wallpaperimage not found; set wallpaper manually to '$wallpaper_path'."
   fi
 
   if [[ -f "$HOME/.config/konsolerc" ]]; then
