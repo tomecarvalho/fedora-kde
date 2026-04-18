@@ -131,7 +131,7 @@ ForegroundPositive=118,148,106
 ForegroundVisited=149,127,184
 
 [General]
-ColorScheme=Kanagawa Wave
+ColorScheme=kanagawa-wave
 Name=Kanagawa Wave
 shadeSortColumn=true
 

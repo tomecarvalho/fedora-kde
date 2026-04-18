@@ -31,6 +31,7 @@ ALL_STEPS=(
   ibm_plex_mono_nerd_font_as_monospace
   ibm_plex_sans_as_sans_serif
   aliases
+  stow
 )
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -38,6 +39,7 @@ ALIASES_DIR="$SCRIPT_DIR/../aliases"
 PKGS_DIR="$SCRIPT_DIR/../packages"
 GENERAL_PKGS_DIR="$PKGS_DIR/general"
 REMOVE_PKGS_DIR="$PKGS_DIR/remove"
+STOW_DIR="$SCRIPT_DIR/../stow"
 
 source "$SCRIPT_DIR/utils.sh"
 
@@ -401,6 +403,36 @@ aliases() {
 
   ln -s "$source" "$target"
   echo "[aliases] Symlinked $source to $target"
+}
+
+stow() {
+  echo "[stow] Apply managed dotfiles via GNU Stow"
+
+  if ! command -v stow &> /dev/null; then
+    echo "[stow] GNU Stow is not installed. Install it first and re-run this step." >&2
+    return
+  fi
+
+  local package="kanagawa-wave"
+  local color_scheme_name="kanagawa-wave"
+  local package_dir="$STOW_DIR/$package"
+
+  if [[ ! -d "$package_dir" ]]; then
+    echo "[stow] Missing package directory: $package_dir" >&2
+    return
+  fi
+
+  mkdir -p "$HOME/.local/share/color-schemes"
+
+  command stow --dir="$STOW_DIR" --target="$HOME" --restow "$package"
+  echo "[stow] Applied package: $package"
+
+  if command -v plasma-apply-colorscheme &> /dev/null; then
+    echo "[stow] Applying colour scheme: $color_scheme_name"
+    plasma-apply-colorscheme "$color_scheme_name"
+  else
+    echo "[stow] plasma-apply-colorscheme not found; apply '$color_scheme_name' manually in System Settings."
+  fi
 }
 
 us_pt_keyboard_layout() {
