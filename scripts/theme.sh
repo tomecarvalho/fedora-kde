@@ -11,7 +11,7 @@ declare -A THEME_VARIANTS=(
 # Theme to wallpaper path mappings (relative to HOME)
 declare -A THEME_WALLPAPERS=(
   [kanagawa-lotus]=".local/share/wallpapers/kanagawa-lotus.jpg"
-  [kanagawa-wave]=".local/share/wallpapers/kanagawa-wave.jpg"
+  [kanagawa-wave]=".local/share/wallpapers/kanagawa-wave.png"
 )
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
