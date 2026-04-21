@@ -15,6 +15,7 @@ pipx
 python3
 python3-pip
 qbittorrent
+ripgrep
 snapd
 snapper
 stow
