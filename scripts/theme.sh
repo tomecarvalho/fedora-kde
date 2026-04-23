@@ -14,6 +14,12 @@ declare -A THEME_WALLPAPERS=(
   [kanagawa-wave]=".local/share/wallpapers/kanagawa-wave.png"
 )
 
+# Theme to VS Code theme name mappings
+declare -A THEME_VSCODE_THEMES=(
+  [kanagawa-wave]="Kanagawa Wave"
+  [kanagawa-lotus]="Kanagawa Lotus"
+)
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STOW_DIR="$SCRIPT_DIR/../stow"
 
@@ -41,11 +47,76 @@ normalize_theme_name() {
   fi
 }
 
+update_editor_theme_setting() {
+  local settings_path="$1"
+  local editor_name="$2"
+  local vscode_theme_name="$3"
+
+  if [[ ! -f "$settings_path" ]]; then
+    return 0
+  fi
+
+  local tmp_path
+  tmp_path="$(mktemp)"
+
+  if ! THEME_NAME="$vscode_theme_name" perl -0777 -pe '
+      my $theme = $ENV{THEME_NAME};
+      my $scan = $_;
+
+      # Remove comments only for matching checks.
+      $scan =~ s{\/\*.*?\*\/}{}gs;
+      $scan =~ s{^\s*//.*$}{}gm;
+
+      if ($scan =~ /"window\.autoDetectColorScheme"\s*:\s*true\b/) {
+        # Auto-detect explicitly enabled: keep file unchanged.
+        print STDERR "AUTO_DETECT_ON\n";
+        $_ = $_;
+        next;
+      }
+
+      my $theme_escaped = $theme;
+      $theme_escaped =~ s/([\\"])/\\$1/g;
+
+      if ($_ =~ /"workbench\.colorTheme"\s*:\s*"(?:\\.|[^"\\])*"/) {
+        s/("workbench\.colorTheme"\s*:\s*")((?:\\.|[^"\\])*)(")/${1}${theme_escaped}${3}/;
+      } else {
+        if ($_ =~ /^\s*\{\s*\}\s*$/s) {
+          $_ = "{\n  \"workbench.colorTheme\": \"$theme_escaped\",\n}\n";
+        } else {
+          my $insert = "\n  \"workbench.colorTheme\": \"$theme_escaped\",";
+          s/(\s*}\s*$)/$insert$1/s;
+        }
+      }
+    ' "$settings_path" > "$tmp_path" 2>"$tmp_path.stderr"; then
+    rm -f "$tmp_path" "$tmp_path.stderr"
+    echo "[theme] Could not process '$settings_path'; skipping $editor_name settings update."
+    return 0
+  fi
+
+  if grep -q '^AUTO_DETECT_ON$' "$tmp_path.stderr"; then
+    rm -f "$tmp_path" "$tmp_path.stderr"
+    echo "[theme] $editor_name settings unchanged (auto-detect enabled)."
+    return 0
+  fi
+
+  rm -f "$tmp_path.stderr"
+
+  if cmp -s "$settings_path" "$tmp_path"; then
+    rm -f "$tmp_path"
+    echo "[theme] $editor_name settings unchanged (theme already set)."
+    return 0
+  fi
+
+  mv "$tmp_path" "$settings_path"
+  echo "[theme] Set $editor_name workbench.colorTheme to '$vscode_theme_name'."
+}
+
 apply_theme() {
   local theme_name="$1"
   local package="$theme_name"
   local color_scheme_name="$theme_name"
   local konsole_scheme_name="$theme_name"
+  local vscode_theme_name="${THEME_VSCODE_THEMES[$theme_name]:-}"
   local wallpaper_rel_path="${THEME_WALLPAPERS[$theme_name]:-}"
   local wallpaper_path=""
   local kwrite_theme_name
@@ -120,6 +191,13 @@ apply_theme() {
     echo "[theme] Applied KWrite colour theme '$kwrite_theme_name'"
   else
     echo "[theme] kwriteconfig not found; set KWrite Color Theme to '$kwrite_theme_name' manually."
+  fi
+
+  if [[ -z "$vscode_theme_name" ]]; then
+    echo "[theme] No VS Code theme mapping found for '$theme_name'; skipping VS Code and Cursor updates."
+  else
+    update_editor_theme_setting "$HOME/.config/Code/User/settings.json" "VS Code" "$vscode_theme_name"
+    update_editor_theme_setting "$HOME/.config/Cursor/User/settings.json" "Cursor" "$vscode_theme_name"
   fi
 }
 
