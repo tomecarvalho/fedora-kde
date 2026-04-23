@@ -14,6 +14,12 @@ declare -A THEME_DEFAULT_ALIASES=(
   [dark]="kanagawa-wave"
 )
 
+# Current KDE scheme to opposite theme mappings
+declare -A THEME_TOGGLES=(
+  [kanagawa-lotus]="kanagawa-wave"
+  [kanagawa-wave]="kanagawa-lotus"
+)
+
 # Theme to wallpaper path mappings (relative to HOME)
 declare -A THEME_WALLPAPERS=(
   [kanagawa-lotus]=".local/share/wallpapers/kanagawa-lotus.jpg"
@@ -55,6 +61,38 @@ normalize_theme_name() {
       return 1
     fi
   fi
+}
+
+get_active_kde_color_scheme() {
+  local kdeglobals_path="$HOME/.config/kdeglobals"
+
+  if [[ ! -f "$kdeglobals_path" ]]; then
+    echo "Error: KDE globals file not found at '$kdeglobals_path'." >&2
+    return 1
+  fi
+
+  awk -F'=' '
+    $0 == "[General]" { in_general = 1; next }
+    /^\[/ && $0 != "[General]" { in_general = 0 }
+    in_general && $1 == "ColorScheme" {
+      print $2
+      exit
+    }
+  ' "$kdeglobals_path"
+}
+
+toggle_theme() {
+  local active_theme
+  active_theme="$(get_active_kde_color_scheme)" || return 1
+
+  local next_theme="${THEME_TOGGLES[$active_theme]:-}"
+  if [[ -z "$next_theme" ]]; then
+    echo "Error: Active KDE color scheme '$active_theme' is not one of the supported Kanagawa themes." >&2
+    echo "Supported schemes: ${!THEME_TOGGLES[*]}" >&2
+    return 1
+  fi
+
+  apply_theme "$next_theme"
 }
 
 update_editor_theme_setting() {
@@ -224,6 +262,7 @@ Supported formats:
   $0 kanagawa dark
   $0 light                   # Alias -> kanagawa-lotus
   $0 dark                    # Alias -> kanagawa-wave
+  $0 toggle                  # Switch between kanagawa-lotus and kanagawa-wave
 
 Available themes:
 EOF
@@ -235,6 +274,16 @@ EOF
 if [[ $# -lt 1 ]]; then
   usage
   exit 1
+fi
+
+if [[ "$1" == "toggle" ]]; then
+  if [[ $# -ne 1 ]]; then
+    echo "Error: 'toggle' does not take additional arguments." >&2
+    exit 1
+  fi
+
+  toggle_theme
+  exit $?
 fi
 
 theme_name=$(normalize_theme_name "$@") || exit 1
