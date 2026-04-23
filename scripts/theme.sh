@@ -8,6 +8,12 @@ declare -A THEME_VARIANTS=(
   [kanagawa-dark]="kanagawa-wave"
 )
 
+# Default light/dark aliases
+declare -A THEME_DEFAULT_ALIASES=(
+  [light]="kanagawa-lotus"
+  [dark]="kanagawa-wave"
+)
+
 # Theme to wallpaper path mappings (relative to HOME)
 declare -A THEME_WALLPAPERS=(
   [kanagawa-lotus]=".local/share/wallpapers/kanagawa-lotus.jpg"
@@ -30,8 +36,12 @@ normalize_theme_name() {
   local arg2="${2:-}"
 
   if [[ -z "$arg2" ]]; then
-    # Single argument: direct theme ID (e.g., "kanagawa-lotus")
-    echo "$arg1"
+    # Single argument: direct theme ID or alias (e.g., "kanagawa-lotus" or "dark")
+    if [[ -n "${THEME_DEFAULT_ALIASES[$arg1]:-}" ]]; then
+      echo "${THEME_DEFAULT_ALIASES[$arg1]}"
+    else
+      echo "$arg1"
+    fi
   else
     # Two arguments: family + variant (e.g., "kanagawa light")
     local key="${arg1}-${arg2}"
@@ -212,6 +222,8 @@ Supported formats:
   $0 kanagawa-wave
   $0 kanagawa light          # Family + variant
   $0 kanagawa dark
+  $0 light                   # Alias -> kanagawa-lotus
+  $0 dark                    # Alias -> kanagawa-wave
 
 Available themes:
 EOF
