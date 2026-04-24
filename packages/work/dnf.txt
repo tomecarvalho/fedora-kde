@@ -1,8 +1,11 @@
+composer
 gcc-c++
 globalprotect-openconnect
 golang
 google-chrome-stable
 libxcrypt-compat.x86_64
 openvpn
+php-mysqlnd
+php-pdo
 postgresql
 sqlite
