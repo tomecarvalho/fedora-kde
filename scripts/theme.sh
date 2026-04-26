@@ -26,6 +26,12 @@ declare -A THEME_WALLPAPERS=(
   [kanagawa-wave]=".local/share/wallpapers/kanagawa-wave-stripes-fedora-recolored.png"
 )
 
+# Theme to lockscreen wallpaper path mappings (relative to HOME)
+declare -A THEME_LOCKSCREEN_WALLPAPERS=(
+  [kanagawa-lotus]=".local/share/wallpapers/kanagawa-lotus-lockscreen.png"
+  [kanagawa-wave]=".local/share/wallpapers/kanagawa-wave-lockscreen.png"
+)
+
 
 # Theme to VS Code theme name mappings
 declare -A THEME_VSCODE_THEMES=(
@@ -168,11 +174,16 @@ apply_theme() {
   local vscode_theme_name="${THEME_VSCODE_THEMES[$theme_name]:-}"
   local wallpaper_rel_path="${THEME_WALLPAPERS[$theme_name]:-}"
   local wallpaper_path=""
+  local lockscreen_wallpaper_rel_path="${THEME_LOCKSCREEN_WALLPAPERS[$theme_name]:-}"
+  local lockscreen_wallpaper_path=""
   local kwrite_theme_name
   kwrite_theme_name="$(printf '%s' "$theme_name" | awk -F'-' '{for (i = 1; i <= NF; i++) $i = toupper(substr($i, 1, 1)) substr($i, 2)} 1 {print}')"
 
   if [[ -n "$wallpaper_rel_path" ]]; then
     wallpaper_path="$HOME/$wallpaper_rel_path"
+  fi
+  if [[ -n "$lockscreen_wallpaper_rel_path" ]]; then
+    lockscreen_wallpaper_path="$HOME/$lockscreen_wallpaper_rel_path"
   fi
 
   if ! command -v stow &> /dev/null; then
@@ -205,6 +216,20 @@ apply_theme() {
     echo "[theme] Applied wallpaper: $wallpaper_path"
   else
     echo "[theme] plasma-apply-wallpaperimage not found; set wallpaper manually to '$wallpaper_path'."
+  fi
+
+  if [[ -z "$lockscreen_wallpaper_path" ]]; then
+    echo "[theme] No lockscreen wallpaper mapping found for theme '$theme_name'; skipping lockscreen auto-apply."
+  elif [[ ! -f "$lockscreen_wallpaper_path" ]]; then
+    echo "[theme] Lockscreen wallpaper file not found: $lockscreen_wallpaper_path"
+  elif command -v kwriteconfig6 &> /dev/null; then
+    kwriteconfig6 --file "$HOME/.config/kscreenlockerrc" --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "file://$lockscreen_wallpaper_path"
+    echo "[theme] Applied lockscreen wallpaper: $lockscreen_wallpaper_path"
+  elif command -v kwriteconfig5 &> /dev/null; then
+    kwriteconfig5 --file "$HOME/.config/kscreenlockerrc" --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "file://$lockscreen_wallpaper_path"
+    echo "[theme] Applied lockscreen wallpaper: $lockscreen_wallpaper_path"
+  else
+    echo "[theme] kwriteconfig not found; set lockscreen wallpaper manually to '$lockscreen_wallpaper_path'."
   fi
 
   if [[ -f "$HOME/.config/konsolerc" ]]; then
