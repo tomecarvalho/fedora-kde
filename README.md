@@ -60,6 +60,6 @@ Keyboard shortcuts are stored in [shortcuts/shortcuts.kksrc](shortcuts/shortcuts
 
 They can be exported and imported at _System Settings > Keyboard > Shortcuts_.
 
-## Disclaimer - AI Usage
+# Disclaimer - AI Usage
 
-Large-language models were used
+Large-language models were used to implement the Kanagawa colour schemes for KDE Plasma, Konsole and KWrite/Kate, as well as to adapt the Gruvbox wallpapers to the colour schemes and update their Fedora logo.
