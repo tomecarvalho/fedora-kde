@@ -22,9 +22,10 @@ declare -A THEME_TOGGLES=(
 
 # Theme to wallpaper path mappings (relative to HOME)
 declare -A THEME_WALLPAPERS=(
-  [kanagawa-lotus]=".local/share/wallpapers/kanagawa-lotus.jpg"
-  [kanagawa-wave]=".local/share/wallpapers/kanagawa-wave.png"
+  [kanagawa-lotus]=".local/share/wallpapers/kanagawa-lotus-stripes-fedora-recolored.png"
+  [kanagawa-wave]=".local/share/wallpapers/kanagawa-wave-stripes-fedora-recolored.png"
 )
+
 
 # Theme to VS Code theme name mappings
 declare -A THEME_VSCODE_THEMES=(
