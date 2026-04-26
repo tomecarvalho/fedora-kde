@@ -59,3 +59,7 @@ Package lists contain system packages (DNF), Flatpaks and Snaps.
 Keyboard shortcuts are stored in [shortcuts/shortcuts.kksrc](shortcuts/shortcuts.kksrc).
 
 They can be exported and imported at _System Settings > Keyboard > Shortcuts_.
+
+## Disclaimer - AI Usage
+
+Large-language models were used

@@ -6,5 +6,4 @@ Colour schemes
 
 Wallpapers
 
-- [Kanagawa Wave - wallpaper by _u/executor32_ on Reddit](https://drive.google.com/file/d/1o3wSOpjtiGffywHitSXnKOqzY15qKrT_/view)
-- [Kanagawa Lotus - image on The Metropolitan Museum of Art](https://www.metmuseum.org/art/collection/search/45434)
+- [Gruvbox Stripes Wallpapers by _u/atlas-ark_ on Reddit - recoloured to match the Kanagawa palettes](https://www.reddit.com/r/wallpaper/comments/vrf0f4/comment/iev32p7/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button)
