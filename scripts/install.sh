@@ -3,7 +3,7 @@
 OH_MY_ZSH_INSTALL_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
 NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh"
 
-IBM_PLEX_MONO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/IBMPlexMono.zip"
+IOSEVKA_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Iosevka.zip"
 
 US_PT_KEYBOARD_LAYOUT_GITHUB_SUFFIX="tomecarvalho/us-pt-keyboard-layout.git"
 
@@ -27,9 +27,8 @@ ALL_STEPS=(
   starship
   docker
   snapper
-  ibm_plex_mono_nerd_font
-  ibm_plex_mono_nerd_font_as_monospace
-  ibm_plex_sans_as_sans_serif
+  iosevka_nerd_font
+  iosevka_nerd_font_as_monospace
   aliases
   stow
 )
@@ -299,16 +298,16 @@ snapper() {
   sudo systemctl enable --now snapper-cleanup.timer
 }
 
-ibm_plex_mono_nerd_font() {
-  echo "[ibm_plex_mono_nerd_font] Install IBM Plex Mono Nerd Font"
+iosevka_nerd_font() {
+  echo "[iosevka_nerd_font] Install Iosevka Nerd Font Mono"
 
-  local font_name="IBMPlexMonoNerdFont"
+  local font_name="IosevkaNerdFont"
   local font_dir="/usr/local/share/fonts/$font_name"
 
-  local matched_mono_family
-  matched_mono_family="$(fc-match -f '%{family}\n' 'IBM Plex Mono Nerd Font' 2>/dev/null || true)"
-  if [[ "${matched_mono_family,,}" == *"ibm plex mono nerd font"* ]]; then
-    echo "$font_name is already installed"
+  local matched_family
+  matched_family="$(fc-match -f '%{family}\n' 'Iosevka Nerd Font Mono' 2>/dev/null || true)"
+  if [[ "${matched_family,,}" == *"iosevka nerd font mono"* ]]; then
+    echo "[iosevka_nerd_font] Iosevka Nerd Font Mono is already installed"
     return
   fi
 
@@ -318,29 +317,45 @@ ibm_plex_mono_nerd_font() {
   # Download into a temporary ZIP file, unzip, and clean up the temp file
   local tmp_zip
   tmp_zip="$(mktemp --suffix=.zip)"
-  curl -L -o "$tmp_zip" "$IBM_PLEX_MONO_NERD_FONT_URL"
-  sudo unzip -o "$tmp_zip" -d "$font_dir"
+  curl -L -o "$tmp_zip" "$IOSEVKA_NERD_FONT_URL"
+
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  unzip -o "$tmp_zip" -d "$tmp_dir"
+
+  local copied=false
+  while IFS= read -r -d '' ttf_file; do
+    sudo cp "$ttf_file" "$font_dir/"
+    copied=true
+  done < <(find "$tmp_dir" -type f -name 'IosevkaNerdFontMono-*.ttf' -print0)
+
+  rm -rf "$tmp_dir"
   rm "$tmp_zip"
+
+  if [[ "$copied" != true ]]; then
+    echo "[iosevka_nerd_font] No IosevkaNerdFontMono .ttf files found in downloaded archive" >&2
+    return
+  fi
 
   # Update font cache
   sudo fc-cache -fv
 
-  echo "[ibm_plex_mono_nerd_font] Installed $font_name to $font_dir"
+  echo "[iosevka_nerd_font] Installed $font_name to $font_dir"
 }
 
-ibm_plex_mono_nerd_font_as_monospace() {
-  echo "[ibm_plex_mono_nerd_font_as_monospace] Set IBM Plex Mono Nerd Font as the monospace font system-wide"
+iosevka_nerd_font_as_monospace() {
+  echo "[iosevka_nerd_font_as_monospace] Set Iosevka Nerd Font Mono as the monospace font system-wide"
 
   mkdir -p ~/.config/fontconfig/conf.d
 
-  cat > ~/.config/fontconfig/conf.d/99-monospace-ibm-plex-mono.conf <<'EOF'
+  cat > ~/.config/fontconfig/conf.d/99-monospace-iosevka-nerd-font-mono.conf <<'EOF'
 <?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
 <fontconfig>
   <alias>
     <family>monospace</family>
     <prefer>
-      <family>Blex Mono Nerd Font Mono</family>
+      <family>Iosevka Nerd Font Mono</family>
     </prefer>
   </alias>
 </fontconfig>
@@ -348,38 +363,7 @@ EOF
 
   sudo fc-cache -fv
 
-  echo "[ibm_plex_mono_nerd_font_as_monospace] Set IBM Plex Mono Nerd Font Mono as the monospace font"
-}
-
-ibm_plex_sans_as_sans_serif() {
-  echo "[ibm_plex_sans_as_sans_serif] Set IBM Plex Sans as the sans-serif font system-wide"
-
-  local matched_sans_family
-  matched_sans_family="$(fc-match -f '%{family}\n' 'IBM Plex Sans' 2>/dev/null || true)"
-  if [[ "${matched_sans_family,,}" != *"ibm plex sans"* ]]; then
-    echo "[ibm_plex_sans_as_sans_serif] IBM Plex Sans is not installed. Please install it manually first and re-run this step."
-    echo "You can download it from https://fonts.google.com/specimen/IBM+Plex+Sans"
-    return
-  fi
-
-  mkdir -p ~/.config/fontconfig/conf.d
-
-  cat > ~/.config/fontconfig/conf.d/99-sans-serif-ibm-plex-sans.conf <<'EOF'
-<?xml version="1.0"?>
-<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-<fontconfig>
-  <alias>
-    <family>sans-serif</family>
-    <prefer>
-      <family>IBM Plex Sans</family>
-    </prefer>
-  </alias>
-</fontconfig>
-EOF
-
-  sudo fc-cache -fv
-
-  echo "[ibm_plex_sans_as_sans_serif] Set IBM Plex Sans as the sans-serif font"
+  echo "[iosevka_nerd_font_as_monospace] Set Iosevka Nerd Font Mono as the monospace font"
 }
 
 aliases() {
