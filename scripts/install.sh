@@ -3,7 +3,7 @@
 OH_MY_ZSH_INSTALL_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
 NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh"
 
-IOSEVKA_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Iosevka.zip"
+NOTO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Noto.zip"
 
 US_PT_KEYBOARD_LAYOUT_GITHUB_SUFFIX="tomecarvalho/us-pt-keyboard-layout.git"
 
@@ -27,8 +27,8 @@ ALL_STEPS=(
   starship
   docker
   snapper
-  iosevka_nerd_font
-  iosevka_nerd_font_as_monospace
+  noto_nerd_font
+  noto_nerd_font_as_monospace
   aliases
   stow
 )
@@ -298,64 +298,48 @@ snapper() {
   sudo systemctl enable --now snapper-cleanup.timer
 }
 
-iosevka_nerd_font() {
-  echo "[iosevka_nerd_font] Install Iosevka Nerd Font Mono"
+noto_nerd_font() {
+  echo "[noto_nerd_font] Install Noto Nerd Font"
 
-  local font_name="IosevkaNerdFont"
+  local font_name="NotoMonoNerdFont"
   local font_dir="/usr/local/share/fonts/$font_name"
 
-  local matched_family
-  matched_family="$(fc-match -f '%{family}\n' 'Iosevka Nerd Font Mono' 2>/dev/null || true)"
-  if [[ "${matched_family,,}" == *"iosevka nerd font mono"* ]]; then
-    echo "[iosevka_nerd_font] Iosevka Nerd Font Mono is already installed"
+  if fc-list | grep -q "$font_name"; then
+    echo "[noto_nerd_font] $font_name is already installed"
     return
   fi
 
   # Create the font directory, if needed
   sudo mkdir -p "$font_dir"
 
-  # Download into a temporary ZIP file, unzip, and clean up the temp file
+  # Download into a temporary ZIP file, unzip into the font directory, and clean up
   local tmp_zip
   tmp_zip="$(mktemp --suffix=.zip)"
-  curl -L -o "$tmp_zip" "$IOSEVKA_NERD_FONT_URL"
-
-  local tmp_dir
-  tmp_dir="$(mktemp -d)"
-  unzip -o "$tmp_zip" -d "$tmp_dir"
-
-  local copied=false
-  while IFS= read -r -d '' ttf_file; do
-    sudo cp "$ttf_file" "$font_dir/"
-    copied=true
-  done < <(find "$tmp_dir" -type f -name 'IosevkaNerdFontMono-*.ttf' -print0)
-
-  rm -rf "$tmp_dir"
-  rm "$tmp_zip"
-
-  if [[ "$copied" != true ]]; then
-    echo "[iosevka_nerd_font] No IosevkaNerdFontMono .ttf files found in downloaded archive" >&2
-    return
-  fi
+  curl -L -o "$tmp_zip" "$NOTO_NERD_FONT_URL"
+  sudo unzip -o "$tmp_zip" -d "$font_dir"
+  rm -f "$tmp_zip"
 
   # Update font cache
   sudo fc-cache -fv
 
-  echo "[iosevka_nerd_font] Installed $font_name to $font_dir"
+  echo "[noto_nerd_font] Installed $font_name to $font_dir"
 }
 
-iosevka_nerd_font_as_monospace() {
-  echo "[iosevka_nerd_font_as_monospace] Set Iosevka Nerd Font Mono as the monospace font system-wide"
+noto_nerd_font_as_monospace() {
+  echo "[noto_nerd_font_as_monospace] Set Noto Nerd Font Mono as the monospace font system-wide"
 
   mkdir -p ~/.config/fontconfig/conf.d
 
-  cat > ~/.config/fontconfig/conf.d/99-monospace-iosevka-nerd-font-mono.conf <<'EOF'
+  local font_name="NotoMonoNerdFont"
+
+  cat > ~/.config/fontconfig/conf.d/99-monospace-noto-nerd-font-mono.conf <<EOF
 <?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
 <fontconfig>
   <alias>
     <family>monospace</family>
     <prefer>
-      <family>Iosevka Nerd Font Mono</family>
+      <family>${font_name}</family>
     </prefer>
   </alias>
 </fontconfig>
@@ -363,7 +347,7 @@ EOF
 
   sudo fc-cache -fv
 
-  echo "[iosevka_nerd_font_as_monospace] Set Iosevka Nerd Font Mono as the monospace font"
+  echo "[noto_nerd_font_as_monospace] Set ${font_name} as the monospace font"
 }
 
 aliases() {
