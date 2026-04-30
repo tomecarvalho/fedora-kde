@@ -3,7 +3,7 @@
 OH_MY_ZSH_INSTALL_URL="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
 NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh"
 
-NOTO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Noto.zip"
+BLEX_MONO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/IBMPlexMono.zip"
 
 US_PT_KEYBOARD_LAYOUT_GITHUB_SUFFIX="tomecarvalho/us-pt-keyboard-layout.git"
 
@@ -27,8 +27,8 @@ ALL_STEPS=(
   starship
   docker
   snapper
-  noto_nerd_font
-  noto_nerd_font_as_monospace
+  blex_mono_nerd_font
+  blex_mono_nerd_font_as_monospace
   aliases
   stow
 )
@@ -298,14 +298,14 @@ snapper() {
   sudo systemctl enable --now snapper-cleanup.timer
 }
 
-noto_nerd_font() {
-  echo "[noto_nerd_font] Install Noto Nerd Font"
+blex_mono_nerd_font() {
+  echo "[blex_mono_nerd_font] Install Blex Mono Nerd Font"
 
-  local font_name="NotoMonoNerdFont"
+  local font_name="BlexMonoNerdFont"
   local font_dir="/usr/local/share/fonts/$font_name"
 
   if fc-list | grep -q "$font_name"; then
-    echo "[noto_nerd_font] $font_name is already installed"
+    echo "[blex_mono_nerd_font] $font_name is already installed"
     return
   fi
 
@@ -315,24 +315,24 @@ noto_nerd_font() {
   # Download into a temporary ZIP file, unzip into the font directory, and clean up
   local tmp_zip
   tmp_zip="$(mktemp --suffix=.zip)"
-  curl -L -o "$tmp_zip" "$NOTO_NERD_FONT_URL"
+  curl -L -o "$tmp_zip" "$BLEX_MONO_NERD_FONT_URL"
   sudo unzip -o "$tmp_zip" -d "$font_dir"
   rm -f "$tmp_zip"
 
   # Update font cache
   sudo fc-cache -fv
 
-  echo "[noto_nerd_font] Installed $font_name to $font_dir"
+  echo "[blex_mono_nerd_font] Installed $font_name to $font_dir"
 }
 
-noto_nerd_font_as_monospace() {
-  echo "[noto_nerd_font_as_monospace] Set Noto Nerd Font Mono as the monospace font system-wide"
+blex_mono_nerd_font_as_monospace() {
+  echo "[blex_mono_nerd_font_as_monospace] Set Blex Mono Nerd Font Mono as the monospace font system-wide"
 
   mkdir -p ~/.config/fontconfig/conf.d
 
-  local font_name="NotoMonoNerdFont"
+  local font_name="BlexMono Nerd Font Mono"
 
-  cat > ~/.config/fontconfig/conf.d/99-monospace-noto-nerd-font-mono.conf <<EOF
+  cat > ~/.config/fontconfig/conf.d/99-monospace-blex-mono-nerd-font-mono.conf <<EOF
 <?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
 <fontconfig>
@@ -347,7 +347,7 @@ EOF
 
   sudo fc-cache -fv
 
-  echo "[noto_nerd_font_as_monospace] Set ${font_name} as the monospace font"
+  echo "[blex_mono_nerd_font_as_monospace] Set ${font_name} as the monospace font"
 }
 
 aliases() {
