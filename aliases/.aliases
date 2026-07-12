@@ -37,11 +37,6 @@ konsave_pull() {
 	"$SCRIPTS_PATH/konsave-pull.sh" "$@"
 }
 
-# Apply a theme to Plasma, Konsole, and KWrite.
-theme() {
-	"$SCRIPTS_PATH/theme.sh" "$@"
-}
-
 # Backup a project directory, excluding common package manager caches and dependencies, recursively.
 backup_projects() {
 	"$BACKUP_SCRIPTS_PATH/backup-projects.sh" "$@"

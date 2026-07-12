@@ -374,24 +374,24 @@ aliases() {
 }
 
 stow() {
-  echo "[stow] Restow all Kanagawa packages via GNU Stow"
+  echo "[stow] Restow packages"
 
   if ! command -v stow &> /dev/null; then
     echo "[stow] GNU Stow is not installed. Install it first and re-run this step." >&2
     return
   fi
 
-  local package
-  for package in kanagawa-wave kanagawa-lotus; do
-    local package_dir="$STOW_DIR/$package"
-    if [[ ! -d "$package_dir" ]]; then
-      echo "[stow] Missing package directory: $package_dir" >&2
-      continue
-    fi
+  # local package
+  # for package in ...; do
+  #   local package_dir="$STOW_DIR/$package"
+  #   if [[ ! -d "$package_dir" ]]; then
+  #     echo "[stow] Missing package directory: $package_dir" >&2
+  #     continue
+  #   fi
 
-    command stow --dir="$STOW_DIR" --target="$HOME" --restow "$package"
-    echo "[stow] Applied package: $package"
-  done
+  #   command stow --dir="$STOW_DIR" --target="$HOME" --restow "$package"
+  #   echo "[stow] Applied package: $package"
+  # done
 }
 
 
