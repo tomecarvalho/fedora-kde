@@ -1,3 +1,4 @@
+brave-origin
 btrfs-assistant
 curl
 discord
@@ -5,6 +6,7 @@ fastfetch
 fd-find
 fzf
 git
+jellyfin
 kcolorchooser
 ksshaskpass
 kwallet-pam
@@ -20,9 +22,6 @@ snapd
 snapper
 stow
 thunderbird
-tmux
-vlc
-webapp-manager
 zoxide
 zsh
 zsh-syntax-highlighting

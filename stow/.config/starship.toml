@@ -1,0 +1,3 @@
+# Disable the built-in gcloud module, because it's annoyingly displayed everywhere.
+[gcloud]
+disabled = true

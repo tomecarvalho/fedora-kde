@@ -7,17 +7,27 @@ BLEX_MONO_NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/downlo
 
 US_PT_KEYBOARD_LAYOUT_GITHUB_SUFFIX="tomecarvalho/us-pt-keyboard-layout.git"
 
+VIDEOS_DIR="$HOME/Videos"
+SHOWS_DIR="$VIDEOS_DIR/shows"
+MOVIES_DIR="$VIDEOS_DIR/movies"
+JELLYFIN_MEDIA_DIR="/mnt/media"
+JELLYFIN_SHOWS_DIR="$JELLYFIN_MEDIA_DIR/shows"
+JELLYFIN_MOVIES_DIR="$JELLYFIN_MEDIA_DIR/movies"
+
 set -euo pipefail
 
 # Default, ordered list of descriptive step names
 ALL_STEPS=(
   dnf_up
   rpm_fusion
+  repos
   copr
   dnf_install
   dnf_uninstall
   flatpak_install
   snap_install
+  codecs
+  ca_bundle_symlink
   pipx_install
   vscode
   node
@@ -30,7 +40,8 @@ ALL_STEPS=(
   blex_mono_nerd_font
   blex_mono_nerd_font_as_monospace
   aliases
-  stow
+  jellyfin
+  stow_apply
 )
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -39,6 +50,13 @@ PKGS_DIR="$SCRIPT_DIR/../packages"
 GENERAL_PKGS_DIR="$PKGS_DIR/general"
 REMOVE_PKGS_DIR="$PKGS_DIR/remove"
 STOW_DIR="$SCRIPT_DIR/../stow"
+
+VIDEOS_DIR="$HOME/Videos"
+SHOWS_DIR="$VIDEOS_DIR/shows"
+MOVIES_DIR="$VIDEOS_DIR/movies"
+JELLYFIN_MEDIA_DIR="/mnt/media"
+JELLYFIN_SHOWS_DIR="$JELLYFIN_MEDIA_DIR/shows"
+JELLYFIN_MOVIES_DIR="$JELLYFIN_MEDIA_DIR/movies"
 
 source "$SCRIPT_DIR/utils.sh"
 
@@ -58,29 +76,38 @@ rpm_fusion() {
   sudo dnf in -y https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$fedora_version.noarch.rpm
 }
 
+repos() {
+  echo "[repos] Enable additional repositories"
+
+  local repos_file="$GENERAL_PKGS_DIR/repos.txt"
+  local repos=($(util_read_package_list "$repos_file"))
+
+  if [[ ${#repos[@]} -eq 0 ]]; then
+    echo "[repos] No additional repositories to enable"
+    return
+  fi
+
+  echo "[repos] Enabling ${#repos[@]} additional repository(ies)..."
+  for repo in "${repos[@]}"; do
+    sudo dnf config-manager addrepo --from-repofile="$repo"
+  done
+}
+
 copr() {
   echo "[copr] Enable COPR repositories"
   
   local copr_file="$GENERAL_PKGS_DIR/copr.txt"
-  local repos=($(read_package_list "$copr_file"))
+  local repos=($(util_read_package_list "$copr_file"))
+
+  if [[ ${#repos[@]} -eq 0 ]]; then
+    echo "[copr] No COPR repositories to enable"
+    return
+  fi
 
   echo "[copr] Enabling ${#repos[@]} COPR repository(ies)..."
 
   for repo in "${repos[@]}"; do
     sudo dnf copr enable -y "$repo"
-  done
-}
-
-repofiles() {
-  echo "[repofiles] Enable repositories from repofiles"
-
-  local repos_file="$GENERAL_PKGS_DIR/repofiles.txt"
-  local repos=($(read_package_list "$repos_file"))
-
-  echo "[repofiles] Enabling ${#repos[@]} additional repository(ies)..."
-
-  for repo in "${repos[@]}"; do
-    sudo dnf config-manager addrepo --from-repofile="$repo"
   done
 }
 
@@ -111,19 +138,53 @@ dnf_uninstall() {
 
 codecs() {
   # https://rpmfusion.org/Howto/Multimedia
-  echo "[codecs] Switch to full ffmpeg"
+
+  local prefix="[codecs]"
+  
+  echo "$prefix Switch to full ffmpeg"
   sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing
 
-  echo "[codecs] Install additional multimedia codecs"
+  echo "$prefix Install additional codecs"
   sudo dnf up -y @multimedia --setopt="install_weak_deps=False" --exclude=PackageKit-gstreamer-plugin
 
-  echo "[codecs] Enable RPM Fusion Free Tainted and install package for DVD"
+  echo "$prefix Install packages for DVD"
   sudo dnf in -y rpmfusion-free-release-tainted
   sudo dnf in -y libdvdcss
 
-  echo "[codecs] Enable RPM Fusion Non-free Tainted and install various firmwares"
+  echo "$prefix Install various firmwares from nonfree tainted"
   sudo dnf in -y rpmfusion-nonfree-release-tainted
   sudo dnf --repo=rpmfusion-nonfree-tainted in -y "*-firmware"
+
+  # Fix H265/E-AC-3 unable to be played by deleting GStreamer cache.
+  # See: https://discussion.fedoraproject.org/t/how-to-play-h265-videos-and-e-ac-3-audio/146600/7
+  echo "$prefix Delete GStreamer registry cache to fix H265/E-AC-3 playback"
+  rm ~/.cache/gstreamer-1.0/registry.x86_64.bin
+}
+
+# Symlink the system CA bundle to the location expected by some tools, if not already set up.
+ca_bundle_symlink() {
+  local prefix="[ca_bundle_symlink]"
+
+  echo "$prefix Set up /etc/pki/tls/certs/ca-bundle.crt symlink"
+
+  local target="/etc/pki/tls/certs/ca-bundle.crt"
+  local source="/etc/ssl/certs/ca-bundle.crt"
+
+  # If target already exists, exit.
+  if [[ -e "$target" ]]; then
+    echo "$prefix $target already exists, skipping symlink setup"
+    return
+  fi
+
+  # If source doesn't exist, warn and exit.
+  if [[ ! -e "$source" ]]; then
+    echo "$prefix Warning: source CA bundle not found at $source. Cannot create symlink at $target." >&2
+    return 1
+  fi
+
+  sudo ln -s "$source" "$target"
+
+  echo "$prefix Created symlink from $source to $target"
 }
 
 flatpak_install() {
@@ -150,7 +211,7 @@ snap_install() {
   echo "[snap_install] Install Snap packages"
 
   local pkg_file="$GENERAL_PKGS_DIR/snap.txt"
-  local packages=($(read_package_list "$pkg_file"))
+  local packages=($(util_read_package_list "$pkg_file"))
 
   if [[ ${#packages[@]} -eq 0 ]]; then
     echo "[snap_install] No packages to install"
@@ -161,7 +222,19 @@ snap_install() {
   sudo systemctl enable --now snapd.socket
   sudo ln -sf /var/lib/snapd/snap /snap 2>/dev/null || true
 
-  echo "[snap_install] Installing ${#packages[@]} packages with snap..."
+  echo "[snap_install] Waiting for snapd socket to become ready..."
+  local retries=50
+  until systemctl is-active --quiet snapd.socket; do
+    if [[ $retries -le 0 ]]; then
+      echo "[snap_install] snapd.socket did not become ready in time" >&2
+      return 1
+    fi
+
+    sleep 0.1
+    ((retries--))
+  done
+
+  echo "[snap_install] Installing ${#packages[@]} package(s) with snap..."
   for package in "${packages[@]}"; do
     sudo snap install "$package"
   done
@@ -373,27 +446,84 @@ aliases() {
   echo "[aliases] Symlinked $source to $target"
 }
 
-stow() {
-  echo "[stow] Restow packages"
+jellyfin() {
+  echo "[jellyfin] Set up Jellyfin media server"
 
-  if ! command -v stow &> /dev/null; then
-    echo "[stow] GNU Stow is not installed. Install it first and re-run this step." >&2
+  # Create user "shows" and "movies" directories in Videos, if needed
+  mkdir -p "$SHOWS_DIR"
+  mkdir -p "$MOVIES_DIR"
+
+  # Create directories for Jellyfin media
+  sudo mkdir -p "$JELLYFIN_SHOWS_DIR"
+  sudo mkdir -p "$JELLYFIN_MOVIES_DIR"
+
+  # Ensure fstab entries exist (bind mounts)
+  FSTAB_LINE_SHOWS="$SHOWS_DIR $JELLYFIN_SHOWS_DIR none bind 0 0"
+  FSTAB_LINE_MOVIES="$MOVIES_DIR $JELLYFIN_MOVIES_DIR none bind 0 0"
+
+  grep -qsF "$FSTAB_LINE_SHOWS" /etc/fstab || \
+    echo "$FSTAB_LINE_SHOWS" | sudo tee -a /etc/fstab
+
+  grep -qsF "$FSTAB_LINE_MOVIES" /etc/fstab || \
+    echo "$FSTAB_LINE_MOVIES" | sudo tee -a /etc/fstab
+
+  # Mount everything from fstab (applies immediately)
+  sudo mount -a
+
+  # Give jellyfin user read + traverse access via ACL (cleaner than chmod o+x)
+  if id jellyfin &>/dev/null; then
+    sudo setfacl -R -m u:jellyfin:rx "$SHOWS_DIR" "$MOVIES_DIR"
+    sudo setfacl -m u:jellyfin:x "$VIDEOS_DIR" "$HOME"
+  else
+    echo "[jellyfin] Warning: jellyfin user not found, skipping ACL setup"
+  fi
+
+  echo "[jellyfin] Done"
+}
+
+stow_apply() {
+  local prefix="[stow_apply]"
+
+  echo "$prefix Symlink stow-managed dotfiles to home directory"
+
+  local stow_bin
+  stow_bin="$(type -P stow || true)"
+
+  if [[ -z "$stow_bin" ]]; then
+    echo "$prefix GNU Stow is not installed. Install it first and re-run this step." >&2
     return
   fi
 
-  # local package
-  # for package in ...; do
-  #   local package_dir="$STOW_DIR/$package"
-  #   if [[ ! -d "$package_dir" ]]; then
-  #     echo "[stow] Missing package directory: $package_dir" >&2
-  #     continue
-  #   fi
+  if [[ ! -d "$STOW_DIR" ]]; then
+    echo "$prefix Stow directory not found at $STOW_DIR" >&2
+    return 1
+  fi
 
-  #   command stow --dir="$STOW_DIR" --target="$HOME" --restow "$package"
-  #   echo "[stow] Applied package: $package"
-  # done
+  local -a packages=()
+  local package
+
+  while IFS= read -r package; do
+    [[ -n "$package" ]] && packages+=("$package")
+  done < <(find "$STOW_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+
+  if [[ ${#packages[@]} -eq 0 ]]; then
+    echo "$prefix No stow packages found in $STOW_DIR"
+    return
+  fi
+
+  echo "$prefix Stowing ${#packages[@]} package(s) from $STOW_DIR into $HOME"
+
+  for package in "${packages[@]}"; do
+    local package_target="$HOME"
+
+    if [[ "$package" == .* ]]; then
+      package_target="$HOME/$package"
+    fi
+
+    echo "$prefix Stowing package: $package"
+    "$stow_bin" --restow --dir "$STOW_DIR" --target "$package_target" "$package"
+  done
 }
-
 
 us_pt_keyboard_layout() {
   echo "[us_pt_keyboard_layout] Install the us-pt keyboard layout"
